@@ -1,38 +1,26 @@
 package com.xxx.thachraucau.launcher.controller
 
-import android.content.Context
-import android.content.Intent
-import android.content.pm.ResolveInfo
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.xxx.thachraucau.launcher.model.AppInfo
+import com.xxx.thachraucau.launcher.repository.AppRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
+import javax.inject.Inject
 
-class MainController(val mContext: Context) {
-    val liveData: MutableLiveData<List<AppInfo>> = MutableLiveData()
+@HiltViewModel
+class MainController @Inject constructor(val mRepository: AppRepository): ViewModel() {
+    val listData: MutableLiveData<List<AppInfo>> = MutableLiveData()
 
     init {
-        liveData.value = emptyList()
+        listData.value = emptyList()
         CoroutineScope(Dispatchers.IO).launch {
-            var appsList = ArrayList<AppInfo>()
-            val i = Intent(Intent.ACTION_MAIN, null)
-            i.addCategory(Intent.CATEGORY_LAUNCHER)
-            val availableActivities: List<ResolveInfo> =
-                mContext.packageManager.queryIntentActivities(i, 0)
-            for (ri in availableActivities) {
-                if(ri.activityInfo.packageName == mContext.packageName) continue
-                val appInfo = AppInfo(
-                    ri.loadLabel(mContext.packageManager) as String,
-                    ri.activityInfo.packageName,
-                    ri.activityInfo.loadIcon(mContext.packageManager),
-                )
-                appsList.add(appInfo)
-            }
+            val appList = mRepository.getAppList()
             withContext(Dispatchers.Main) {
-                liveData.value = appsList
+                listData.value = appList
             }
         }
     }

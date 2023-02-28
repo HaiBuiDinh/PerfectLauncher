@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.GridLayout
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
 import com.xxx.thachraucau.launcher.GridManager
@@ -18,16 +19,16 @@ import com.xxx.thachraucau.launcher.controller.MainController
 import com.xxx.thachraucau.launcher.databinding.ActivityMainBinding
 import com.xxx.thachraucau.launcher.databinding.CustomAppListBinding
 import com.xxx.thachraucau.launcher.model.AppInfo
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     val mLogger by lazy {
         Logger(this.javaClass.simpleName)
     }
 
-    val mController by lazy {
-        MainController(this)
-    }
+    val mController: MainController by viewModels()
 
     val screenSize by lazy {
         val displayMetrics = DisplayMetrics()
@@ -87,7 +88,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        mController.liveData.observe(this) {
+        mController.listData.observe(this) {
             if (it.isNotEmpty()) {
                 val adapter = PagerGridAdapter(supportFragmentManager, it)
                 mBinding.viewpagerGrid.apply {
@@ -135,31 +136,7 @@ class MainActivity : AppCompatActivity() {
             val data = ClipData.newPlainText("", "test")
             val shadowBuilder = View.DragShadowBuilder(view)
             view.startDragAndDrop(data, shadowBuilder, view, 0)
-//            mDragAppInfo = AppInfo(tagApp.name, tagApp.packageName, tagApp.icon)
-//            val currentPosition = mListAppInfo.indexOf(tagApp)
-//            mLogger.d("currentPosition = $currentPosition, app = ${tagApp.name}")
-//            for (index in mListAppInfo.size - 1 downTo currentPosition + 1) {
-//                mListAppInfo[index].mX = mListAppInfo[index - 1].mX
-//                mListAppInfo[index].mY = mListAppInfo[index - 1].mY
-//                mListAppInfo[index].mRow = mListAppInfo[index - 1].mRow
-//                mListAppInfo[index].mCol = mListAppInfo[index - 1].mCol
-//                mListAppInfo[index].mWidth = mListAppInfo[index - 1].mWidth
-//                mListAppInfo[index].mHeight = mListAppInfo[index - 1].mHeight
-//            }
-//            mListAppInfo.remove(tagApp)
             mBinding.hotseat.removeView(it)
-//
-//            if (mNeedCheckGrid) {
-//                for (index in 0 until mGridLayout.childCount) {
-//                    val test = mGridLayout.getChildAt(index).getTag(R.string.app_name)
-//                    mLogger.d("afterDrag view = $test")
-//                }
-//                mLogger.d("======================")
-//                for (index in 0 until mListAppInfo.size) {
-//                    mLogger.d("afterDrag info = ${mListAppInfo.get(index)}")
-//                }
-//            }
-
             true
         }
         val param = GridLayout.LayoutParams()
