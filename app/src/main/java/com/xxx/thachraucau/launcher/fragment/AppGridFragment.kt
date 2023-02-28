@@ -1,20 +1,24 @@
 package com.xxx.thachraucau.launcher.fragment
 
 import android.content.ClipData
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.*
 import android.view.View.OnLayoutChangeListener
 import android.widget.GridLayout
-import com.xxx.thachraucau.launcher.GridManager
 import com.xxx.thachraucau.launcher.Logger
 import com.xxx.thachraucau.launcher.model.AppInfo
 import com.xxx.thachraucau.launcher.R
 import com.xxx.thachraucau.launcher.databinding.CustomAppListBinding
-import com.xxx.thachraucau.launcher.databinding.FragmentAppListGridBinding
+import com.xxx.thachraucau.launcher.databinding.FragmentAppGridBinding
+import com.xxx.thachraucau.launcher.getLocationOnScreen
+import com.xxx.thachraucau.launcher.model.Grid
+import com.xxx.thachraucau.launcher.model.LocationInfo
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-class AppListGridFragment : AbsFragment() {
+@AndroidEntryPoint
+class AppGridFragment : AbsFragment() {
 
     var mPageIndex: Int = -1
     var mListAppInfo: MutableList<AppInfo> = mutableListOf()
@@ -24,45 +28,20 @@ class AppListGridFragment : AbsFragment() {
         Logger(this.javaClass.simpleName)
     }
 
-    val mCurrentGrid by lazy {
-        GridManager.getInstance().currentGrid
-    }
-
+    @Inject
+    lateinit var mCurrentGrid: Grid
     var mSelectedPage = -1
+    val mDebugGrid = false
 
-    val mNeedCheckGrid = false
+    val mGridLayoutInfo = LocationInfo()
 
+    lateinit var mBinding: FragmentAppGridBinding
 
-    // 0: vị trí x
-    // 1: vị trí y
-    // 2: width
-    // 3: height
-    val gridlayoutSize = IntArray(4)
+    override fun getLayoutIds() = R.layout.fragment_app_grid
 
-    lateinit var mBinding: FragmentAppListGridBinding
-
-
-    override fun onPageChanged(selectedPage: Int) {
-        mLogger.d("check equal size grid.count = ${mGridLayout.childCount}, list.size = ${mListAppInfo.size}")
-        mSelectedPage = selectedPage
-    }
-
-    override fun dropHotSeatFull(appInfo: AppInfo) {
-        if (mPageIndex == mSelectedPage) {
-            mListAppInfo.add(appInfo)
-            mGridLayout.addView(getViewToAdd(mListAppInfo.size - 1).apply {
-                setTag(R.string.app_name, mListAppInfo.last())
-            })
-        }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val rootView = inflater.inflate(R.layout.fragment_app_list_grid, container, false)
-        mBinding = FragmentAppListGridBinding.bind(rootView)
-        mGridLayout = mBinding.gridAppList
+    override fun initView(rootView: View) {
+        mBinding = FragmentAppGridBinding.bind(rootView)
+        mGridLayout = mBinding.gridApp
         mGridLayout.rowCount = mCurrentGrid.mRow
         mGridLayout.columnCount = mCurrentGrid.mCol
 
@@ -79,20 +58,19 @@ class AppListGridFragment : AbsFragment() {
                 oldBottom: Int
             ) {
                 mGridLayout.removeOnLayoutChangeListener(this)
-                val gridLocation = IntArray(2)
-                mGridLayout.getLocationOnScreen(gridLocation)
-                gridlayoutSize[0] = gridLocation[0]
-                gridlayoutSize[1] = gridLocation[1]
-                gridlayoutSize[2] = mGridLayout.width
-                gridlayoutSize[3] = mGridLayout.height
-                mLogger.d("gird x = ${gridLocation[0]} y = ${gridLocation[1]}, widht = ${mGridLayout.width} height = ${mGridLayout.height}")
+                val gridLocation = mGridLayout.getLocationOnScreen()
+                mGridLayoutInfo.mX = gridLocation.mX
+                mGridLayoutInfo.mY = gridLocation.mY
+                mGridLayoutInfo.mWidth = mGridLayout.width
+                mGridLayoutInfo.mHeight = mGridLayout.height
+                mLogger.d("gird x = ${gridLocation.mX} y = ${gridLocation.mY}, widht = ${mGridLayout.width} height = ${mGridLayout.height}")
                 Handler(Looper.getMainLooper()).post {
                     initAppList()
                 }
             }
         })
-        return rootView
     }
+
 
     fun initAppList() {
         for (index in 0 until mListAppInfo.size) {
@@ -106,7 +84,7 @@ class AppListGridFragment : AbsFragment() {
                         val dragView = event.localState as View?
                         val tagInfo = dragView?.getTag(R.string.app_name) as AppInfo?
                         val position =
-                            findDropPosition(event.x + mPageIndex * gridlayoutSize[2], event.y)
+                            findDropPosition(event.x + mPageIndex * mGridLayoutInfo.mWidth, event.y)
                         if (position != null) {
                             mLogger.d("target position between ${position[0]} and ${position[1]}")
                             tagInfo?.let {
@@ -124,7 +102,7 @@ class AppListGridFragment : AbsFragment() {
                                 })
                             }
                         }
-                        if (mNeedCheckGrid) {
+                        if (mDebugGrid) {
                             for (index in 0 until mGridLayout.childCount) {
                                 val info = mGridLayout.getChildAt(index)
                                     .getTag(R.string.app_name) as AppInfo
@@ -151,6 +129,21 @@ class AppListGridFragment : AbsFragment() {
             }
         })
     }
+
+    override fun onPageChanged(selectedPage: Int) {
+        mLogger.d("check equal size grid.count = ${mGridLayout.childCount}, list.size = ${mListAppInfo.size}")
+        mSelectedPage = selectedPage
+    }
+
+    override fun dropHotSeatFull(appInfo: AppInfo) {
+        if (mPageIndex == mSelectedPage) {
+            mListAppInfo.add(appInfo)
+            mGridLayout.addView(getViewToAdd(mListAppInfo.size - 1).apply {
+                setTag(R.string.app_name, mListAppInfo.last())
+            })
+        }
+    }
+
 
     fun findDropPosition(x: Float, y: Float): IntArray? {
         mLogger.d("findDropPosition x = $x, y = $y")
@@ -213,7 +206,7 @@ class AppListGridFragment : AbsFragment() {
             mListAppInfo.remove(tagApp)
             mGridLayout.removeView(it)
 
-            if (mNeedCheckGrid) {
+            if (mDebugGrid) {
                 for (index in 0 until mGridLayout.childCount) {
                     val test = mGridLayout.getChildAt(index).getTag(R.string.app_name)
                     mLogger.d("afterDrag view = $test")
@@ -227,8 +220,8 @@ class AppListGridFragment : AbsFragment() {
             true
         }
         val param = GridLayout.LayoutParams()
-        param.height = gridlayoutSize[3] / mCurrentGrid.mRow
-        param.width = gridlayoutSize[2] / mCurrentGrid.mCol
+        param.height = mGridLayoutInfo.mHeight / mCurrentGrid.mRow
+        param.width = mGridLayoutInfo.mWidth / mCurrentGrid.mCol
 //        param.rightMargin = 5
 //        param.topMargin = 5
         param.setGravity(Gravity.CENTER)
@@ -255,11 +248,10 @@ class AppListGridFragment : AbsFragment() {
             ) {
                 val tagApp = v!!.getTag(R.string.app_name) as AppInfo
 //                view.removeOnLayoutChangeListener(this)
-                val location = IntArray(2)
-                view.getLocationOnScreen(location)
+                val location = view.getLocationOnScreen()
                 tagApp.mX =
-                    location[0] + if (mPageIndex == mSelectedPage) mPageIndex * gridlayoutSize[2] else 0
-                tagApp.mY = location[1]
+                    location.mX + if (mPageIndex == mSelectedPage) mPageIndex * mGridLayoutInfo.mWidth else 0
+                tagApp.mY = location.mY
                 tagApp.mWidth = view.width
                 tagApp.mHeight = view.height
                 mLogger.d("onLayoutChange : ${tagApp.name}, row = ${tagApp.mRow}, col = ${tagApp.mCol}, x = ${tagApp.mX}, y = ${tagApp.mY}, width = ${tagApp.mWidth}, height = ${tagApp.mHeight}")

@@ -2,7 +2,6 @@ package com.xxx.thachraucau.launcher.activity
 
 import android.content.ClipData
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.DragEvent
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -11,13 +10,12 @@ import android.widget.GridLayout
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
-import com.xxx.thachraucau.launcher.GridManager
-import com.xxx.thachraucau.launcher.Logger
-import com.xxx.thachraucau.launcher.R
+import com.xxx.thachraucau.launcher.*
 import com.xxx.thachraucau.launcher.adapter.PagerGridAdapter
 import com.xxx.thachraucau.launcher.controller.MainController
 import com.xxx.thachraucau.launcher.databinding.ActivityMainBinding
 import com.xxx.thachraucau.launcher.databinding.CustomAppListBinding
+import com.xxx.thachraucau.launcher.manager.GridManager
 import com.xxx.thachraucau.launcher.model.AppInfo
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,30 +28,23 @@ class MainActivity : AppCompatActivity() {
 
     val mController: MainController by viewModels()
 
-    val screenSize by lazy {
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val result = IntArray(2)
-        result[0] = displayMetrics.widthPixels
-        result[1] = displayMetrics.heightPixels
-        result
+    val mScreenSize by lazy {
+        getScreenSize()
     }
 
     lateinit var mBinding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_main)
-//
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
 
         mBinding.viewpagerGrid.layoutParams.apply {
-            height = screenSize[1] * 85 / 100
+            height = mScreenSize.mHeight * 85 / 100
         }
 
         mBinding.hotseat.layoutParams.apply {
-            height = screenSize[1] * 15 / 100
+            height = mScreenSize.mHeight * 15 / 100
         }
 
         mBinding.hotseat.setOnDragListener(object : View.OnDragListener {
@@ -105,7 +96,6 @@ class MainActivity : AppCompatActivity() {
                         positionOffset: Float,
                         positionOffsetPixels: Int
                     ) {
-//                        logger.d("onPageScrolled position = $position")
                     }
 
                     override fun onPageSelected(position: Int) {
@@ -114,7 +104,6 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     override fun onPageScrollStateChanged(state: Int) {
-//                        logger.d("onPageScrollStateChanged state = $state")
                     }
 
                 })
@@ -141,8 +130,8 @@ class MainActivity : AppCompatActivity() {
         }
         val param = GridLayout.LayoutParams()
         val currentGrid = GridManager.getInstance().currentGrid
-        param.height = (screenSize[1] * 85 / 100) / currentGrid.mRow
-        param.width = screenSize[0] / currentGrid.mCol
+        param.height = (mScreenSize.mHeight * 85 / 100) / currentGrid.mRow
+        param.width = mScreenSize.mWidth / currentGrid.mCol
 //        param.rightMargin = 5
 //        param.topMargin = 5
         param.setGravity(Gravity.CENTER)
@@ -169,11 +158,9 @@ class MainActivity : AppCompatActivity() {
             ) {
                 val tagApp = v!!.getTag(R.string.app_name) as AppInfo
 //                view.removeOnLayoutChangeListener(this)
-                val location = IntArray(2)
-                view.getLocationOnScreen(location)
-                tagApp.mX =
-                    location[0]
-                tagApp.mY = location[1]
+                val location = view.getLocationOnScreen()
+                tagApp.mX = location.mX
+                tagApp.mY = location.mY
                 tagApp.mWidth = view.width
                 tagApp.mHeight = view.height
                 mLogger.d("onLayoutChange : ${tagApp.name}, row = ${tagApp.mRow}, col = ${tagApp.mCol}, x = ${tagApp.mX}, y = ${tagApp.mY}, width = ${tagApp.mWidth}, height = ${tagApp.mHeight}")
