@@ -1,8 +1,10 @@
 package com.xxx.thachraucau.launcher.fragment
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.view.*
 import android.view.View.OnLayoutChangeListener
 import android.widget.GridLayout
@@ -71,63 +73,91 @@ class AppGridFragment : AbsFragment() {
         })
     }
 
+    val REORDER_MESSAGE_ID = 69
+    var mLastMoveLocation = IntArray(2)
+    val mReorderHandler by lazy { ReorderHandler() }
+
 
     fun initAppList() {
         for (index in 0 until mListAppInfo.size) {
-            mGridLayout.addView(getViewToAdd(index))
+            mGridLayout.addView(getViewToAdd(mListAppInfo.get(index)))
         }
 
-        mGridLayout.setOnDragListener(object : View.OnDragListener {
-            override fun onDrag(v: View?, event: DragEvent?): Boolean {
-                when (event?.action) {
-                    DragEvent.ACTION_DROP -> {
-                        val dragView = event.localState as View?
-                        val tagInfo = dragView?.getTag(R.string.app_name) as AppInfo?
-                        val position =
-                            findDropPosition(event.x + mPageIndex * mGridLayoutInfo.mWidth, event.y)
-                        if (position != null) {
-                            mLogger.d("target position between ${position[0]} and ${position[1]}")
-                            tagInfo?.let {
-                                mListAppInfo.add(position[1], it)
-                                mGridLayout.addView(getViewToAdd(position[1]).apply {
-                                    setTag(R.string.app_name, it)
-                                }, position[1])
-                            }
-                        } else {
-                            // add vao cuoi
-                            tagInfo?.let {
-                                mListAppInfo.add(it)
-                                mGridLayout.addView(getViewToAdd(mListAppInfo.size - 1).apply {
-                                    setTag(R.string.app_name, mListAppInfo.last())
-                                })
-                            }
+        mGridLayout.setOnDragListener { v, event ->
+            when (event?.action) {
+                DragEvent.ACTION_DROP -> {
+                    val dragView = event.localState as View?
+                    val tagInfo = dragView?.getTag(R.string.app_name) as AppInfo?
+                    val position =
+                        findDropPosition(event.x + mPageIndex * mGridLayoutInfo.mWidth, event.y)
+                    if (position != null) {
+                        mLogger.d("target position between ${position[0]} and ${position[1]}")
+                        tagInfo?.let {
+                            mListAppInfo.add(position[1], it)
+                            mGridLayout.addView(getViewToAdd(mListAppInfo.get(position[1])).apply {
+                                setTag(R.string.app_name, it)
+                            }, position[1])
                         }
-                        if (mDebugGrid) {
-                            for (index in 0 until mGridLayout.childCount) {
-                                val info = mGridLayout.getChildAt(index)
-                                    .getTag(R.string.app_name) as AppInfo
-                                mLogger.d("afterDrop view = $info")
-                            }
-                            mLogger.d("after drop list ===================================")
-                            for (info in mListAppInfo) {
-                                mLogger.d("afterDrop info = $info")
-                            }
+                    } else {
+                        // add vao cuoi
+                        tagInfo?.let {
+                            mListAppInfo.add(it)
+                            mGridLayout.addView(getViewToAdd(mListAppInfo.last()).apply {
+                                setTag(R.string.app_name, mListAppInfo.last())
+                            })
                         }
                     }
-                    DragEvent.ACTION_DRAG_ENTERED -> {
-                    }
-                    DragEvent.ACTION_DRAG_ENDED -> {
-                    }
-                    DragEvent.ACTION_DRAG_EXITED -> {
-                    }
-                    DragEvent.ACTION_DRAG_STARTED -> {
-                    }
-                    DragEvent.ACTION_DRAG_LOCATION -> {
+                    if (mDebugGrid) {
+                        for (index in 0 until mGridLayout.childCount) {
+                            val info = mGridLayout.getChildAt(index)
+                                .getTag(R.string.app_name) as AppInfo
+                            mLogger.d("afterDrop view = $info")
+                        }
+                        mLogger.d("after drop list ===================================")
+                        for (info in mListAppInfo) {
+                            mLogger.d("afterDrop info = $info")
+                        }
                     }
                 }
-                return true
+                DragEvent.ACTION_DRAG_ENTERED -> {
+                }
+                DragEvent.ACTION_DRAG_ENDED -> {
+                }
+                DragEvent.ACTION_DRAG_EXITED -> {
+                }
+                DragEvent.ACTION_DRAG_STARTED -> {
+                }
+                DragEvent.ACTION_DRAG_LOCATION -> {
+                    mLogger.d("ACTION_DRAG_LOCATION x = ${event.x + mPageIndex * mGridLayoutInfo.mWidth}, y = ${event.y}")
+                    val moveLocation =
+                        findDropPosition(event.x + mPageIndex * mGridLayoutInfo.mWidth, event.y)
+                    moveLocation?.let {
+                        mLogger.d("moveLocation between ${it[0]} and ${it[1]}")
+                        if (!moveLocation.contentEquals(mLastMoveLocation)) {
+                            mLastMoveLocation = moveLocation
+                            mReorderHandler.removeMessages(REORDER_MESSAGE_ID)
+                            mReorderHandler.sendMessageDelayed(
+                                mReorderHandler.obtainMessage(
+                                    REORDER_MESSAGE_ID, mLastMoveLocation.clone()
+                                ), 1000
+                            )
+                        }
+                    }
+                }
             }
-        })
+            true
+        }
+    }
+
+    @SuppressLint("HandlerLeak")
+    inner class ReorderHandler : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            if (msg.what == REORDER_MESSAGE_ID) {
+                mLogger.d("start reorder")
+                val moveLocation = msg.obj as IntArray
+                mLogger.d("between ${moveLocation[0]} and ${moveLocation[1]}")
+            }
+        }
     }
 
     override fun onPageChanged(selectedPage: Int) {
@@ -138,7 +168,7 @@ class AppGridFragment : AbsFragment() {
     override fun dropHotSeatFull(appInfo: AppInfo) {
         if (mPageIndex == mSelectedPage) {
             mListAppInfo.add(appInfo)
-            mGridLayout.addView(getViewToAdd(mListAppInfo.size - 1).apply {
+            mGridLayout.addView(getViewToAdd(mListAppInfo.last()).apply {
                 setTag(R.string.app_name, mListAppInfo.last())
             })
         }
@@ -146,13 +176,13 @@ class AppGridFragment : AbsFragment() {
 
 
     fun findDropPosition(x: Float, y: Float): IntArray? {
-        mLogger.d("findDropPosition x = $x, y = $y")
+//        mLogger.d("findDropPosition x = $x, y = $y")
         val result = IntArray(2)
         var targetApp: AppInfo? = null
         var targetIndex = -1
-        for (index in 0 until mListAppInfo.size) {
-            val info = mListAppInfo.get(index)
-            mLogger.d("findDropTarget ${info.name} index = $index from x = ${info.mX} to ${info.mX + info.mWidth} and from y = ${info.mY} to ${info.mY + info.mHeight}")
+        for (index in 0 until mGridLayout.childCount) {
+            val info = mGridLayout.getChildAt(index).getTag(R.string.app_name) as AppInfo
+//            mLogger.d("findDropTarget ${info.name} index = $index from x = ${info.mX} to ${info.mX + info.mWidth} and from y = ${info.mY} to ${info.mY + info.mHeight}")
             if (info.mX <= x && info.mX + info.mWidth >= x && info.mY <= y && info.mY + info.mHeight >= y) {
                 targetApp = info
                 targetIndex = index
@@ -160,7 +190,7 @@ class AppGridFragment : AbsFragment() {
             }
         }
         if (targetApp != null) {
-            mLogger.d("founded!! targetApp = $targetApp, targetIndex = $targetIndex")
+//            mLogger.d("founded!! targetApp = $targetApp, targetIndex = $targetIndex")
             if (x <= targetApp.mX + targetApp.mWidth / 2) {
                 result[0] = targetIndex - 1
                 result[1] = targetIndex
@@ -174,17 +204,15 @@ class AppGridFragment : AbsFragment() {
         return null
     }
 
-    fun getViewToAdd(position: Int): View {
+    fun getViewToAdd(appInfo: AppInfo): View {
         val view =
             LayoutInflater.from(requireContext())
                 .inflate(R.layout.custom_app_list, mGridLayout, false)
         val customBinding: CustomAppListBinding = CustomAppListBinding.bind(view)
-        val appInfo = mListAppInfo.get(position).apply {
+        appInfo.apply {
             customBinding.tvCustom.text = name
             customBinding.imCustom.setImageDrawable(icon)
             mPageNumber = mPageIndex
-            mRow = position / mCurrentGrid.mCol
-            mCol = position % mCurrentGrid.mCol
         }
         view.setTag(R.string.app_name, appInfo)
         view.setOnLongClickListener {
@@ -198,8 +226,6 @@ class AppGridFragment : AbsFragment() {
             for (index in mListAppInfo.size - 1 downTo currentPosition + 1) {
                 mListAppInfo[index].mX = mListAppInfo[index - 1].mX
                 mListAppInfo[index].mY = mListAppInfo[index - 1].mY
-                mListAppInfo[index].mRow = mListAppInfo[index - 1].mRow
-                mListAppInfo[index].mCol = mListAppInfo[index - 1].mCol
                 mListAppInfo[index].mWidth = mListAppInfo[index - 1].mWidth
                 mListAppInfo[index].mHeight = mListAppInfo[index - 1].mHeight
             }
@@ -234,29 +260,17 @@ class AppGridFragment : AbsFragment() {
 //            param.width *= 2
 //        }
         view.layoutParams = param
-        view.addOnLayoutChangeListener(object : OnLayoutChangeListener {
-            override fun onLayoutChange(
-                v: View?,
-                left: Int,
-                top: Int,
-                right: Int,
-                bottom: Int,
-                oldLeft: Int,
-                oldTop: Int,
-                oldRight: Int,
-                oldBottom: Int
-            ) {
-                val tagApp = v!!.getTag(R.string.app_name) as AppInfo
-//                view.removeOnLayoutChangeListener(this)
-                val location = view.getLocationOnScreen()
-                tagApp.mX =
-                    location.mX + if (mPageIndex == mSelectedPage) mPageIndex * mGridLayoutInfo.mWidth else 0
-                tagApp.mY = location.mY
-                tagApp.mWidth = view.width
-                tagApp.mHeight = view.height
-                mLogger.d("onLayoutChange : ${tagApp.name}, row = ${tagApp.mRow}, col = ${tagApp.mCol}, x = ${tagApp.mX}, y = ${tagApp.mY}, width = ${tagApp.mWidth}, height = ${tagApp.mHeight}")
-            }
-        })
+        view.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            val tagApp = v!!.getTag(R.string.app_name) as AppInfo
+            //                view.removeOnLayoutChangeListener(this)
+            val location = view.getLocationOnScreen()
+            tagApp.mX =
+                location.mX + if (mPageIndex == mSelectedPage) mPageIndex * mGridLayoutInfo.mWidth else 0
+            tagApp.mY = location.mY
+            tagApp.mWidth = view.width
+            tagApp.mHeight = view.height
+//            mLogger.d("onLayoutChange : ${tagApp.name}, x = ${tagApp.mX}, y = ${tagApp.mY}, width = ${tagApp.mWidth}, height = ${tagApp.mHeight}")
+        }
         view.setOnClickListener {
             val tagApp = it.getTag(R.string.app_name) as AppInfo
             val launchIntent =

@@ -15,9 +15,10 @@ import com.xxx.thachraucau.launcher.adapter.PagerGridAdapter
 import com.xxx.thachraucau.launcher.controller.MainController
 import com.xxx.thachraucau.launcher.databinding.ActivityMainBinding
 import com.xxx.thachraucau.launcher.databinding.CustomAppListBinding
-import com.xxx.thachraucau.launcher.manager.GridManager
 import com.xxx.thachraucau.launcher.model.AppInfo
+import com.xxx.thachraucau.launcher.model.Grid
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -31,6 +32,9 @@ class MainActivity : AppCompatActivity() {
     val mScreenSize by lazy {
         getScreenSize()
     }
+
+    @Inject
+    lateinit var mCurrentGrid: Grid
 
     lateinit var mBinding: ActivityMainBinding
 
@@ -58,9 +62,7 @@ class MainActivity : AppCompatActivity() {
                             if (mBinding.hotseat.childCount < 4) {
                                 mBinding.hotseat.addView(getViewToAdd(tagInfo))
                             } else {
-                                (mBinding.viewpagerGrid.adapter as PagerGridAdapter).dropHotSeatFull(
-                                    it
-                                )
+                                (mBinding.viewpagerGrid.adapter as PagerGridAdapter).dropHotSeatFull(it)
                             }
                         }
                     }
@@ -88,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 adapter.onPageChanged(0)
 //                đổi page
-//                viewpager_grid.setCurrentItem()
+//                viewpager_grid. ()
                 mBinding.viewpagerGrid.addOnPageChangeListener(object :
                     ViewPager.OnPageChangeListener {
                     override fun onPageScrolled(
@@ -128,14 +130,13 @@ class MainActivity : AppCompatActivity() {
             mBinding.hotseat.removeView(it)
             true
         }
-        val param = GridLayout.LayoutParams()
-        val currentGrid = GridManager.getInstance().currentGrid
-        param.height = (mScreenSize.mHeight * 85 / 100) / currentGrid.mRow
-        param.width = mScreenSize.mWidth / currentGrid.mCol
+        val param = GridLayout.LayoutParams().apply {
+            height = (mScreenSize.mHeight * 85 / 100) / mCurrentGrid.mRow
+            width = mScreenSize.mWidth / mCurrentGrid.mCol
 //        param.rightMargin = 5
 //        param.topMargin = 5
-        param.setGravity(Gravity.CENTER)
-        // xử lý resize
+            setGravity(Gravity.CENTER)
+            // xử lý resize
 //        if (position == 8) {
 //            param.setGravity(Gravity.FILL_HORIZONTAL or Gravity.FILL_VERTICAL)
 //            param.columnSpec = GridLayout.spec(0, 2)
@@ -143,6 +144,10 @@ class MainActivity : AppCompatActivity() {
 //            param.height *= 2
 //            param.width *= 2
 //        }
+        }
+
+
+
         view.layoutParams = param
         view.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
             override fun onLayoutChange(
@@ -163,7 +168,7 @@ class MainActivity : AppCompatActivity() {
                 tagApp.mY = location.mY
                 tagApp.mWidth = view.width
                 tagApp.mHeight = view.height
-                mLogger.d("onLayoutChange : ${tagApp.name}, row = ${tagApp.mRow}, col = ${tagApp.mCol}, x = ${tagApp.mX}, y = ${tagApp.mY}, width = ${tagApp.mWidth}, height = ${tagApp.mHeight}")
+                mLogger.d("onLayoutChange : ${tagApp.name}, x = ${tagApp.mX}, y = ${tagApp.mY}, width = ${tagApp.mWidth}, height = ${tagApp.mHeight}")
             }
         })
         view.setOnClickListener {
