@@ -23,7 +23,4 @@ abstract class AbsFragment : Fragment() {
 
     abstract fun getLayoutIds(): Int
     abstract fun initView(rootView: View)
-
-    abstract fun onPageChanged(selectedPage: Int)
-    abstract fun dropHotSeatFull(appInfo: AppInfo)
 }

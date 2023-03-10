@@ -4,12 +4,7 @@
     android:layout_height="wrap_content"
     android:layout_rowWeight="1"
     android:layout_columnWeight="1"
-    android:layout_gravity="center"
-    android:layout_marginBottom="20dp"
-    android:clickable="true"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="5dp">
+    android:layout_gravity="center">
 
     <ImageView
         android:id="@+id/im_custom"
@@ -20,18 +15,5 @@
         android:padding="5dp"
         android:scaleType="fitXY"
         android:src="@drawable/ic_launcher_background" />
-
-    <TextView
-        android:id="@+id/tv_custom"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:singleLine="true"
-        android:text="app name"
-        android:textColor="#ffffff" />
 
 </LinearLayout>

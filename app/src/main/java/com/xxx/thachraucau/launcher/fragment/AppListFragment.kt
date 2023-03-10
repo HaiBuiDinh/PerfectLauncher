@@ -12,7 +12,7 @@ import com.xxx.thachraucau.launcher.Logger
 import com.xxx.thachraucau.launcher.model.AppInfo
 import com.xxx.thachraucau.launcher.R
 import com.xxx.thachraucau.launcher.databinding.CustomAppListBinding
-import com.xxx.thachraucau.launcher.databinding.FragmentAppGridBinding
+import com.xxx.thachraucau.launcher.databinding.FragmentAppListBinding
 import com.xxx.thachraucau.launcher.getLocationOnScreen
 import com.xxx.thachraucau.launcher.model.Grid
 import com.xxx.thachraucau.launcher.model.LocationInfo
@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AppGridFragment : AbsFragment() {
+class AppListFragment : AbsAppListFragment() {
 
     var mPageIndex: Int = -1
     var mListAppInfo: MutableList<AppInfo> = mutableListOf()
@@ -37,12 +37,12 @@ class AppGridFragment : AbsFragment() {
 
     val mGridLayoutInfo = LocationInfo()
 
-    lateinit var mBinding: FragmentAppGridBinding
+    lateinit var mBinding: FragmentAppListBinding
 
-    override fun getLayoutIds() = R.layout.fragment_app_grid
+    override fun getLayoutIds() = R.layout.fragment_app_list
 
     override fun initView(rootView: View) {
-        mBinding = FragmentAppGridBinding.bind(rootView)
+        mBinding = FragmentAppListBinding.bind(rootView)
         mGridLayout = mBinding.gridApp
         mGridLayout.rowCount = mCurrentGrid.mRow
         mGridLayout.columnCount = mCurrentGrid.mCol
@@ -259,6 +259,11 @@ class AppGridFragment : AbsFragment() {
 //            param.height *= 2
 //            param.width *= 2
 //        }
+        val imageParam = customBinding.imCustom.layoutParams
+        imageParam.height = param.width * 3 / 5
+        imageParam.width = param.width * 3 / 5
+        customBinding.imCustom.layoutParams = imageParam
+
         view.layoutParams = param
         view.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
             val tagApp = v!!.getTag(R.string.app_name) as AppInfo
