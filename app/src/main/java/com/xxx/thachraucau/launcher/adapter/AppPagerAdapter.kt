@@ -6,10 +6,10 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import com.xxx.thachraucau.launcher.manager.GridManager
 import com.xxx.thachraucau.launcher.model.AppInfo
 import com.xxx.thachraucau.launcher.Logger
-import com.xxx.thachraucau.launcher.fragment.AbsFragment
-import com.xxx.thachraucau.launcher.fragment.AppGridFragment
+import com.xxx.thachraucau.launcher.fragment.AbsAppListFragment
+import com.xxx.thachraucau.launcher.fragment.AppListFragment
 
-class PagerGridAdapter(fragmentManager: FragmentManager, val mListItem: List<AppInfo>) :
+class AppPagerAdapter(fragmentManager: FragmentManager, val mListItem: List<AppInfo>) :
     FragmentStatePagerAdapter(fragmentManager) {
 
     val mLogger by lazy {
@@ -21,18 +21,18 @@ class PagerGridAdapter(fragmentManager: FragmentManager, val mListItem: List<App
     }
 
     val mListFragments by lazy {
-        ArrayList<AbsFragment>()
+        ArrayList<AbsAppListFragment>()
     }
 
     init {
         mLogger.d("size item = ${mListItem.size}")
     }
 
-    fun onPageChanged(position: Int){
+    fun onPageChanged(position: Int) {
         mListFragments.forEach { it.onPageChanged(position) }
     }
 
-    fun dropHotSeatFull(appInfo: AppInfo){
+    fun dropHotSeatFull(appInfo: AppInfo) {
         mListFragments.forEach { it.dropHotSeatFull(appInfo) }
     }
 
@@ -40,15 +40,15 @@ class PagerGridAdapter(fragmentManager: FragmentManager, val mListItem: List<App
         mListItem.size / mCurrentGrid.getCount() + if (mListItem.size % mCurrentGrid.getCount() == 0) 0 else 1
 
     override fun getItem(position: Int): Fragment {
-        var fragment: AbsFragment? = null
+        var fragment: AbsAppListFragment? = null
         for (index in 0..count) {
             if (index == position) {
-                fragment = AppGridFragment().apply {
+                fragment = AppListFragment().apply {
                     mPageIndex = index
-                    val startIndex = position * this@PagerGridAdapter.mCurrentGrid.getCount()
+                    val startIndex = position * this@AppPagerAdapter.mCurrentGrid.getCount()
                     val remain = mListItem.size - startIndex - 1
                     val endIndex =
-                        if (remain >= this@PagerGridAdapter.mCurrentGrid.getCount()) startIndex + this@PagerGridAdapter.mCurrentGrid.getCount() else startIndex + remain + 1
+                        if (remain >= this@AppPagerAdapter.mCurrentGrid.getCount()) startIndex + this@AppPagerAdapter.mCurrentGrid.getCount() else startIndex + remain + 1
                     mListAppInfo = mListItem.subList(startIndex, endIndex).toMutableList()
                 }
                 break
