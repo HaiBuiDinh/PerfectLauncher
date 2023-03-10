@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragment.AppListGridFragment">
+    tools:context=".fragment.AppGridFragment">
 
     <GridLayout
-        android:id="@+id/grid_app_list"
+        android:id="@+id/grid_app"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:columnCount="5"

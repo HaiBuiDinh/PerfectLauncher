@@ -1,4 +1,4 @@
-package com.xxx.thachraucau.launcher
+package com.xxx.thachraucau.launcher.manager
 
 import com.xxx.thachraucau.launcher.model.Grid
 
@@ -16,8 +16,4 @@ class GridManager {
     }
 
     var currentGrid: Grid = Grid.GRID4x6
-
-    fun setGrid(grid: Grid) {
-        currentGrid = grid
-    }
 }
