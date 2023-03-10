@@ -11,11 +11,10 @@
 
     <ImageView
         android:id="@+id/im_custom"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="@drawable/shape_effect"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:clipToOutline="true"
-        android:scaleType="fitXY"
+        android:scaleType="fitCenter"
         android:padding="5dp"
         android:src="@drawable/ic_launcher_background" />
 
