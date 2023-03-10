@@ -74,10 +74,12 @@ class LibraryAdapter(private val mActivity: Activity) :
             param.width = (parent.layoutParams.width / 2) * 3 / 4
             param.height = param.width
             binding.imCustom.layoutParams = param
-            binding.root.setOnClickListener {
-                val launchIntent =
-                    mActivity.packageManager.getLaunchIntentForPackage(appInfo.packageName)
-                mActivity.startActivity(launchIntent)
+            if(!isSmall){
+                binding.root.setOnClickListener {
+                    val launchIntent =
+                        mActivity.packageManager.getLaunchIntentForPackage(appInfo.packageName)
+                    mActivity.startActivity(launchIntent)
+                }
             }
             return binding.root
         }
