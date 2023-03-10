@@ -25,6 +25,9 @@ class WidgetNamesAdapter : RecyclerView.Adapter<WidgetNamesAdapter.WidgetNamesVi
             if (position == mItems.size - 1) mDivider.visibility = View.GONE
             loadAppIcon(info)
             mAppName.text = PackageMgr.getAppName(mContext, info)
+            itemView.setOnClickListener {
+                mClickItem?.onClickItem(packageName = info)
+            }
         }
 
         private fun loadAppIcon(info: String) {
@@ -39,7 +42,7 @@ class WidgetNamesAdapter : RecyclerView.Adapter<WidgetNamesAdapter.WidgetNamesVi
     )
 
     override fun onBindViewHolder(holder: WidgetNamesViewHolder, position: Int) {
-        holder.bindView(mItems.get(position), position)
+        holder.bindView(mItems[position], position)
     }
 
     override fun getItemCount(): Int = mItems.size
@@ -55,7 +58,7 @@ class WidgetNamesAdapter : RecyclerView.Adapter<WidgetNamesAdapter.WidgetNamesVi
     }
 
     interface ClickItem {
-        fun onClickItem()
+        fun onClickItem(packageName: String)
     }
 
     companion object {

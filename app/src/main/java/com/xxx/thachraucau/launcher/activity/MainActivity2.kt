@@ -15,8 +15,9 @@ import com.xxx.thachraucau.launcher.R
 import com.xxx.thachraucau.launcher.adapter.WidgetNamesAdapter
 import com.xxx.thachraucau.launcher.databinding.ActivityMain2Binding
 import com.xxx.thachraucau.launcher.fragment.BSMainWidgetFragment
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class MainActivity2 : AppCompatActivity() {
 
     private lateinit var binding: ActivityMain2Binding
@@ -42,7 +43,7 @@ class MainActivity2 : AppCompatActivity() {
 //        })
 
         binding.btnBottomSheet.setOnClickListener {
-            val bsFragment = BSMainWidgetFragment(listName)
+            val bsFragment = BSMainWidgetFragment()
             bsFragment.show(supportFragmentManager, bsFragment.tag)
         }
 

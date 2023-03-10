@@ -12,4 +12,7 @@
     <color name="edit_text_color">#FF000000</color>
     <color name="text_hint_color">#717070</color>
     <color name="divider_color">#80B8B5B5</color>
+
+    <color name="background_widget_color">#F0F0F0</color>
+    <color name="btn_add_widget_color">#0381FE</color>
 </resources>

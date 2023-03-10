@@ -5,7 +5,7 @@
         android:topRightRadius="26dp"
         android:topLeftRadius="26dp" />
 
-    <solid android:color="#F0F0F0" />
+    <solid android:color="@color/background_widget_color" />
 
     <padding
         android:top="2dp"
