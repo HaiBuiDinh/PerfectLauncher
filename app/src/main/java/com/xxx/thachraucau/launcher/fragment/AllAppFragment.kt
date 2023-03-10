@@ -204,6 +204,10 @@ class AllAppFragment : AbsFragment() {
 //        }
         }
 
+        val imageParam = binding.imCustom.layoutParams
+        imageParam.height = param.width * 3 / 5
+        imageParam.width = param.width * 3 / 5
+        binding.imCustom.layoutParams = imageParam
 
 
         view.layoutParams = param

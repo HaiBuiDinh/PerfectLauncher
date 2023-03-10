@@ -4,7 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
 import com.xxx.thachraucau.launcher.model.AppInfo
+import com.xxx.thachraucau.launcher.model.LibraryInfo
 import javax.inject.Inject
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 class AppDataSource @Inject constructor(val mContext: Context) {
     fun getListApp(): List<AppInfo> {
@@ -23,5 +26,31 @@ class AppDataSource @Inject constructor(val mContext: Context) {
             appsList.add(appInfo)
         }
         return appsList
+    }
+
+
+    // fake tam data
+    fun getListLibraryInfo(): ArrayList<LibraryInfo> {
+        val result = ArrayList<LibraryInfo>()
+        val allApp = getListApp()
+        var target = Random.nextInt(IntRange(2, 9))
+        var listTemp = mutableListOf<AppInfo>()
+        for (info in allApp) {
+            if (listTemp.size == target) {
+                result.add(LibraryInfo("test").apply {
+                    mListApp.addAll(listTemp)
+                })
+                listTemp = mutableListOf()
+                target = Random.nextInt(IntRange(2, 9))
+                continue
+            }
+            listTemp.add(info)
+        }
+        if (listTemp.isNotEmpty()) {
+            result.add(LibraryInfo("test").apply {
+                mListApp.addAll(listTemp)
+            })
+        }
+        return result
     }
 }

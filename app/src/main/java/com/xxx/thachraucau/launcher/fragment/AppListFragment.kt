@@ -259,6 +259,11 @@ class AppListFragment : AbsAppListFragment() {
 //            param.height *= 2
 //            param.width *= 2
 //        }
+        val imageParam = customBinding.imCustom.layoutParams
+        imageParam.height = param.width * 3 / 5
+        imageParam.width = param.width * 3 / 5
+        customBinding.imCustom.layoutParams = imageParam
+
         view.layoutParams = param
         view.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
             val tagApp = v!!.getTag(R.string.app_name) as AppInfo

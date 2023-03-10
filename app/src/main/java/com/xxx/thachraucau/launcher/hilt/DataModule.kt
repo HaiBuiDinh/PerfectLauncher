@@ -2,6 +2,7 @@ package com.xxx.thachraucau.launcher.hilt
 
 import android.content.Context
 import com.xxx.thachraucau.launcher.repository.AppDataSource
+import com.xxx.thachraucau.launcher.repository.AppLibraryRepository
 import com.xxx.thachraucau.launcher.repository.AppRepository
 import dagger.Module
 import dagger.Provides
@@ -20,5 +21,9 @@ class DataModule {
 
     @Reusable
     @Provides
-    fun provideRepository(appDataSource: AppDataSource) = AppRepository(appDataSource)
+    fun provideAppRepository(appDataSource: AppDataSource) = AppRepository(appDataSource)
+
+    @Reusable
+    @Provides
+    fun provideAppLibraryRepository(appDataSource: AppDataSource) = AppLibraryRepository(appDataSource)
 }
